@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FFFBEA; --lemon:#FFE066; --sky:#8ED8F8; --pink:#FF9EBB; --mint:#7EE0B5; --ink:#3B2F5C;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  font-family:'Jua','Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+  color:var(--ink); background:var(--paper); font-size:18px; line-height:1.5;
+  display:flex; flex-direction:column; max-width:760px; margin:0 auto;
+}
+/* 오선지 머리말 */
+header{
+  position:relative; padding:14px 18px 12px; background:var(--lemon);
+  border-bottom:4px solid var(--ink); border-radius:0 0 28px 28px; flex:none;
+  background-image:repeating-linear-gradient(to bottom,transparent 0 9px,rgba(59,47,92,.18) 9px 11px);
+  background-size:100% 56px; background-repeat:no-repeat; background-position:0 14px;
+}
+.top{display:flex; align-items:center; gap:12px; position:relative}
+.mascot{font-size:46px; display:inline-block; animation:bounce 1.6s ease-in-out infinite; transform-origin:bottom}
+@keyframes bounce{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-8px) rotate(6deg)}}
+h1{font-size:26px; font-weight:400; margin:0; line-height:1.1}
+.sub{font-size:15px; margin:2px 0 0}
+.stars{margin-left:auto; text-align:center; background:var(--paper); border:3px solid var(--ink); border-radius:20px; padding:4px 12px}
+.stars b{font-weight:400; font-size:13px; display:block}
+.note{font-size:26px; filter:grayscale(1) opacity(.3); transition:.3s; display:inline-block}
+.note.on{filter:none; animation:pop .5s}
+@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.5) rotate(12deg)}100%{transform:scale(1)}}
+
+#chat{flex:1; overflow-y:auto; padding:18px 14px; display:flex; flex-direction:column; gap:12px}
+.row{display:flex; gap:8px; align-items:flex-end; max-width:92%}
+.row.user{align-self:flex-end; flex-direction:row-reverse}
+.avatar{font-size:30px; flex:none}
+.bubble{padding:10px 14px; border:3px solid var(--ink); white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere}
+.bot .bubble{background:var(--sky); border-radius:20px 20px 20px 4px}
+.user .bubble{background:var(--pink); border-radius:20px 20px 4px 20px}
+.bot .bubble.err{background:#fff; border-style:dashed}
+.copy{display:block; margin-top:8px; font:inherit; font-size:15px; background:var(--lemon); border:2px solid var(--ink); border-radius:12px; padding:2px 12px; cursor:pointer}
+.dots span{display:inline-block; width:10px; height:10px; margin:0 3px; border-radius:50%; background:var(--ink); animation:blink 1s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+footer{flex:none; padding:10px 14px 14px; background:var(--paper)}
+.privacy{font-size:14px; margin:0 0 6px; text-align:center}
+.bar{display:flex; gap:8px}
+textarea{
+  flex:1; font:inherit; color:inherit; resize:none; height:56px; padding:10px 14px;
+  border:3px solid var(--ink); border-radius:20px; background:#fff;
+}
+textarea:focus-visible,button:focus-visible{outline:4px solid var(--mint); outline-offset:2px}
+#send{
+  font:inherit; font-size:20px; background:var(--mint); color:var(--ink); border:3px solid var(--ink);
+  border-radius:20px; padding:0 20px; cursor:pointer; box-shadow:0 4px 0 var(--ink);
+}
+#send:active{transform:translateY(3px); box-shadow:0 1px 0 var(--ink)}
+#send:disabled{background:#ddd; cursor:wait}
+#pick{position:fixed;inset:0;background:rgba(255,251,234,.96);display:flex;align-items:center;justify-content:center;z-index:10;padding:16px}
+#pick[hidden]{display:none}
+#pick .card{background:var(--lemon);border:4px solid var(--ink);border-radius:28px;padding:22px;max-width:520px;width:100%;text-align:center;box-shadow:0 6px 0 var(--ink)}
+#pick h2{font-weight:400;font-size:26px;margin:0 0 4px}
+#pick p{margin:0 0 14px;font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.grid button{font:inherit;font-size:20px;padding:14px 0;border:3px solid var(--ink);border-radius:18px;color:var(--ink);cursor:pointer;box-shadow:0 4px 0 var(--ink);background:var(--sky)}
+.grid button:nth-child(3n+2){background:var(--pink)}
+.grid button:nth-child(3n+3){background:var(--mint)}
+.grid button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+#groupBtn{font:inherit;font-size:15px;background:var(--paper);color:var(--ink);border:3px solid var(--ink);border-radius:16px;padding:2px 10px;cursor:pointer;margin-left:auto}
+#groupBtn + .stars{margin-left:0}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+@media (max-width:480px){body{font-size:17px} h1{font-size:22px} .sub{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <span class="mascot" aria-hidden="true">🎵</span>
+    <div>
+      <h1>도레미와 노래 만들기</h1>
+      <p class="sub">내 마음에 남은 장면을 음악으로 바꿔 봐요!</p>
+    </div>
+    <button id="groupBtn" type="button" title="모둠 바꾸기">👥 모둠 고르기</button>
+    <div class="stars" aria-live="polite">
+      <b>내 마음 이야기</b>
+      <span class="note" id="n1">🎶</span><span class="note" id="n2">🎶</span>
+    </div>
+  </div>
+</header>
+
+<div id="pick">
+  <div class="card">
+    <h2>우리 모둠을 골라요!</h2>
+    <p>모둠만 고르면 돼요. 이름은 쓰지 않아요.</p>
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
+
+<main id="chat" aria-live="polite"></main>
+
+<footer>
+  <p class="privacy">🔒 이름, 학번 같은 개인 정보는 쓰지 않아요. 대화는 수업을 위해 선생님께 저장돼요.</p>
+  <div class="bar">
+    <textarea id="msg" placeholder="여기에 내 생각을 써 보세요" maxlength="500"></textarea>
+    <button id="send" type="button">보내기</button>
+  </div>
+</footer>
+
+<script>
+var GREETING = '반가워요! 국어 시간에 읽은 문학 작품 속 감동과 느낌을 멋진 음악으로 만들어 볼 준비가 되었나요? 🎵\n오늘 어떤 작품(시, 소설, 수필 등)의 어떤 장면을 음악으로 표현하고 싶은지 알려주세요!';
+var history_ = [], okCount = 0, busy = false;
+var sid = Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 5); // 이름 없이 대화를 묶는 접속코드
+var chat = document.getElementById('chat'), msg = document.getElementById('msg'), sendBtn = document.getElementById('send');
+
+function add(role, text, opts) {
+  opts = opts || {};
+  var row = document.createElement('div'); row.className = 'row ' + role;
+  var av = document.createElement('span'); av.className = 'avatar'; av.textContent = role === 'bot' ? '🎵' : '😊';
+  var b = document.createElement('div'); b.className = 'bubble' + (opts.err ? ' err' : '');
+  if (opts.html) b.innerHTML = opts.html; else b.textContent = text;
+  if (role === 'bot' && /장르\/무드/.test(text || '')) {
+    var c = document.createElement('button'); c.className = 'copy'; c.type = 'button'; c.textContent = '📋 복사하기';
+    c.onclick = function () { copy(text, c); }; b.appendChild(c);
+  }
+  row.appendChild(av); row.appendChild(b); chat.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+  return row;
+}
+function copy(text, btn) {
+  function done() { btn.textContent = '✅ 복사했어요!'; setTimeout(function () { btn.textContent = '📋 복사하기'; }, 1500); }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, fallback);
+  } else fallback();
+  function fallback() {
+    var t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select();
+    try { document.execCommand('copy'); done(); } catch (e) {} document.body.removeChild(t);
+  }
+}
+function setStars() {
+  ['n1', 'n2'].forEach(function (id, i) {
+    var el = document.getElementById(id);
+    if (okCount > i) el.classList.add('on');
+  });
+}
+function send() {
+  var text = msg.value.trim();
+  if (!text || busy) return;
+  busy = true; sendBtn.disabled = true; msg.value = '';
+  add('user', text); history_.push({ role: 'user', text: text });
+  var wait = add('bot', '', { html: '<span class="dots"><span></span><span></span><span></span></span>' });
+  google.script.run
+    .withSuccessHandler(function (r) {
+      wait.remove();
+      add('bot', r.reply, { err: r.error });
+      if (!r.error) {
+        history_.push({ role: 'bot', text: r.reply });
+        okCount = r.okCount; setStars();
+      } else { history_.pop(); msg.value = text; }
+      busy = false; sendBtn.disabled = false; msg.focus();
+    })
+    .withFailureHandler(function () {
+      wait.remove(); history_.pop(); msg.value = text;
+      add('bot', '연결이 끊겼어요. 인터넷을 확인하고 다시 보내 주세요.', { err: true });
+      busy = false; sendBtn.disabled = false;
+    })
+    .chat(history_, okCount, sid, group);
+}
+sendBtn.onclick = send;
+msg.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); }
+});
+
+// 모둠 고르기 (모둠 수에 맞게 GROUPS 숫자를 바꾸세요)
+var GROUPS = 8, group = '', greeted = false;
+var pick = document.getElementById('pick'), grid = document.getElementById('grid'), groupBtn = document.getElementById('groupBtn');
+for (var gi = 1; gi <= GROUPS; gi++) {
+  (function (n) {
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = n + '모둠';
+    b.onclick = function () {
+      group = n + '모둠'; groupBtn.textContent = '👥 ' + group + ' ✏️'; pick.hidden = true;
+      if (!greeted) { greeted = true; add('bot', GREETING); } else msg.focus();
+    };
+    grid.appendChild(b);
+  })(gi);
+}
+groupBtn.onclick = function () { pick.hidden = false; };
+</script>
+</body>
+</html>
