@@ -148,16 +148,19 @@ function setStars() {
   });
 }
 // ★ 앱스 스크립트 '배포 관리'에서 복사한 웹 앱 주소(/exec 로 끝남)를 따옴표 안에 붙여 넣으세요.
-var API_URL = 'https://script.google.com/macros/s/AKfycbw_jJXg3hgRcYP65Cf0YLSlKy1AJ7ClZasKO9VgWpNkssB57Qm9bfFlJHcZZ18V5cWA/exec';
+var API_URL = 'https://script.google.com/macros/s/AKfycbw_jJXg3hgRcYP65Cf0YLSlKy1AJ7ClZasKO9VgWpNkssB57Qm9bfFlJHcZZ18V5cWA/exec ';
 
 function callChat(history, okCount, sid, group) {
   if (!/^https:\/\//.test(API_URL)) return Promise.reject(new Error('API_URL 미설정'));
+  var ctrl = new AbortController();                 // 너무 오래 걸리면 40초 뒤에 포기하고 다시 보내게 함
+  var timer = setTimeout(function () { ctrl.abort(); }, 40000);
   return fetch(API_URL, {
     method: 'POST',
+    signal: ctrl.signal,
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // 이 형식이어야 막히지 않고 전달돼요
     body: JSON.stringify({ history: history, okCount: okCount, sid: sid, group: group })
-  }).then(function (res) { return res.text(); },
-    function () { throw new Error('연결 실패: 웹 앱 주소와 접근 권한 확인'); })
+  }).then(function (res) { clearTimeout(timer); return res.text(); },
+    function () { clearTimeout(timer); throw new Error(ctrl.signal.aborted ? '응답이 너무 늦어요' : '연결 실패: 웹 앱 주소와 접근 권한 확인'); })
     .then(function (t) {
       try { return JSON.parse(t); } catch (e) { throw new Error('서버 응답 이상: 새 버전 배포 여부 확인'); }
     });
