@@ -148,7 +148,7 @@ function setStars() {
   });
 }
 // ★ 앱스 스크립트 '배포 관리'에서 복사한 웹 앱 주소(/exec 로 끝남)를 따옴표 안에 붙여 넣으세요.
-var API_URL = 'https://script.google.com/macros/s/AKfycbyAQ99lx9KLmQ6FlwO7PZUwf6dD9Oiskmg2WFxQs7un-hUv4loKSy52UpN4hAhIlOQT/exec';
+var API_URL = 'https://script.google.com/macros/s/AKfycbxEinTtrPHg35aWsX9wToXvJVIvylHBc5Yn82eLD6G1HS6CngYy52np1Xe1ZAzoSClH/exec';
 
 function callChat(history, okCount, sid, group) {
   if (!/^https:\/\//.test(API_URL)) return Promise.reject(new Error('API_URL 미설정'));
@@ -163,12 +163,22 @@ function callChat(history, okCount, sid, group) {
     });
 }
 
+// 시트 기록은 답을 보여 준 뒤 따로 보냄 (기다리지 않음)
+function sendLog(o) {
+  if (!/^https:\/\//.test(API_URL)) return;
+  try {
+    fetch(API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(o) })
+      .catch(function () {});
+  } catch (e) {}
+}
+
 function send() {
   var text = msg.value.trim();
   if (!text || busy) return;
   busy = true; sendBtn.disabled = true; msg.value = '';
   add('user', text); history_.push({ role: 'user', text: text });
-  var wait = add('bot', '', { html: '<span class="dots"><span></span><span></span><span></span></span>' });
+  var turnNo = history_.length;
+  var wait = add('bot', '', { html: '<span class="dots"><span></span><span></span><span></span></span> 도레미가 생각 중이에요' });
   callChat(history_, okCount, sid, group)
     .then(function (r) {
       wait.remove();
@@ -176,6 +186,7 @@ function send() {
       if (!r.error) {
         history_.push({ role: 'bot', text: r.reply });
         okCount = r.okCount; setStars();
+        sendLog({ action: 'log', sid: sid, group: group, turn: turnNo, q: text, a: r.reply, ok: r.counted, okCount: r.okCount });
       } else { history_.pop(); msg.value = text; }
       busy = false; sendBtn.disabled = false; msg.focus();
     }, function (err) {
